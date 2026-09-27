@@ -10,38 +10,51 @@ training artifacts from earlier experiments.
 - Detect common phone-condition classes from images.
 - Support repeatable YOLO model training and inference.
 - Keep preprocessing and evaluation scripts reusable outside the original notebook environment.
-- Present training artifacts in a clear structure that recruiters and engineers can review quickly.
 
-## Demo Preview
+## Example Predictions
 
-Add one clear screenshot or short GIF showing the model detecting phone damage.
-Recommended filename:
+![Validation predictions from the 60-epoch model](models/yolo11s_60_epochs/val_batch0_pred.jpg)
 
-```markdown
-![Phone Damage Detection Demo](docs/demo-phone-damage.png)
-```
+Predictions of the 60-epoch model on a validation batch (confidence shown next to each box).
+
+## Results
+
+Three YOLO11s runs were trained. The best one is `models/yolo11s_60_epochs`
+(best epoch 47 of 60), with these validation scores:
+
+- Precision: 0.534
+- Recall: 0.598
+- mAP50: 0.551
+- mAP50-95: 0.302
+
+Performance is moderate. Oil, Scratches and Phone Good score best,
+while Crack is often missed and Dents almost always fail. See
+[RESULTS.md](RESULTS.md) for all runs, per-class scores, plots, and next steps.
 
 ## Classes
 
-The current inference script is configured for these labels:
+The dataset uses six phone-condition classes:
 
 - Crack
-- Oil
+- Dents
 - Dislodged Screen
 - Scratches
+- Oil
 - Phone Good
-- Dents
 
-Update the class list in `scripts/run_inference.py` if the trained model uses a
-different label order.
+`scripts/run_inference.py` reads the class names stored in the trained
+weights, so predicted labels always match the training order. The model in
+`models/yolo11s_260_epochs` was trained without Dislodged Screen and has five
+classes.
 
 ## Repository Structure
 
 ```text
-TEST.ipynb        Original experimentation notebook
 scripts/          Reusable Python utilities
-models/           Trained model artifacts and YOLO training outputs
-result.txt        Training/evaluation notes
+models/           Trained weights and YOLO training outputs for each run
+docs/             Setup notes (labeling with Label Studio)
+RESULTS.md        Metrics, analysis, and next steps
+TEST.ipynb        Small notebook used for a first inference test
 ```
 
 ## Setup
@@ -83,11 +96,22 @@ python scripts/train_yolo.py --data data.yaml --model yolo11s.pt --epochs 60 --i
 ### Run Inference
 
 ```bash
-python scripts/run_inference.py --model path/to/best.pt --source path/to/test.jpg
+python scripts/run_inference.py --model models/yolo11s_60_epochs/weights/best.pt --source path/to/test.jpg
 ```
 
-## Portfolio Notes
+### Summarize a Training Run
 
-- Keep at least one representative evaluation image or screenshot in `docs/`.
-- Move large trained weights to GitHub Releases or a model registry when possible.
-- Keep the repository focused on code, configuration, evaluation summaries, and lightweight demo assets.
+```bash
+python scripts/summarize_results.py models/yolo11s_60_epochs/results.csv
+```
+
+### Label New Images
+
+See [docs/labeling-with-label-studio.md](docs/labeling-with-label-studio.md).
+
+## Notes
+
+- Model weights are stored directly in the repository. The 160- and 250-epoch
+  run folders also contain a `my_model.zip` archive with the same weights and
+  plots.
+- The training dataset is not included in this repository.
