@@ -8,16 +8,6 @@ from pathlib import Path
 from ultralytics import YOLO
 
 
-DEFAULT_CLASS_NAMES = [
-    "Crack",
-    "oil",
-    "Dislodged Screen",
-    "Scratches",
-    "phone good",
-    "Dents",
-]
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run phone damage inference.")
     parser.add_argument("--model", required=True, type=Path)
@@ -27,10 +17,9 @@ def main() -> None:
     parser.add_argument("--save", action="store_true", default=True)
     args = parser.parse_args()
 
+    # Class names are read from the trained weights, so labels always match
+    # the class order used during training.
     model = YOLO(str(args.model))
-    model.model.names = {
-        index: name for index, name in enumerate(DEFAULT_CLASS_NAMES)
-    }
 
     results = model(
         str(args.source),
@@ -44,7 +33,7 @@ def main() -> None:
             x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
             confidence = box.conf[0].item()
             class_id = int(box.cls[0].item())
-            label = model.model.names[class_id]
+            label = model.names[class_id]
             print(f"{label} {confidence:.2f} at [{x1}, {y1}, {x2}, {y2}]")
 
 
